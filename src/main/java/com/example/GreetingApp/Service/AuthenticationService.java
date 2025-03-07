@@ -44,7 +44,7 @@ public class    AuthenticationService {
         authUserRepository.save(authUser);
         String subject = "Successful Login Notification";
         String content = "<h2>Hello " + authUser.getFirstName() + ",</h2>"
-                + "<p>You have successfully logged in to your account.</p>"
+                + "<p>You have registered successfully.</p>"
                 + "<p>If this wasn't you, please reset your password immediately.</p>"
                 + "<br><p>Regards,</p><p><strong>GreetingsApp Team</strong></p>";
 
@@ -77,5 +77,57 @@ public class    AuthenticationService {
         String token = jwtUtil.generateToken(email);
 
         return token;
+    }
+
+    // Forgot Password Implementation
+    public String forgotPassword(String email, String newPassword) {
+        Optional<AuthUser> userOpt = authUserRepository.findByEmail(email);
+
+        if (userOpt.isEmpty()) {
+            return "Sorry! We cannot find the user email: " + email;
+        }
+
+        AuthUser user = userOpt.get();
+        user.setPassword(passwordEncoder.encode(newPassword)); // Encrypt password before saving
+        authUserRepository.save(user);
+
+        // Send email confirmation
+        String subject = "Password Reset Successful";
+        String content = "<h2>Hello " + user.getFirstName() + ",</h2>"
+                + "<p>Your password has been successfully changed.</p>"
+                + "<p>If this wasn't you, please contact support immediately.</p>"
+                + "<br><p>Regards,</p><p><strong>GreetingsApp Team</strong></p>";
+
+        emailService.sendEmail(user.getEmail(), subject, content);
+        return "Password has been changed successfully!";
+    }
+
+    // Reset Password (User is logged in)
+    public String resetPassword(String email, String currentPassword, String newPassword) {
+        Optional<AuthUser> userOpt = authUserRepository.findByEmail(email);
+
+        if (userOpt.isEmpty()) {
+            return "Sorry! We cannot find the user email: " + email;
+        }
+
+        AuthUser user = userOpt.get();
+
+        // Verify current password before allowing change
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            return "Incorrect current password!";
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        authUserRepository.save(user);
+
+        // Send email confirmation
+        String subject = "Password Change Notification";
+        String content = "<h2>Hello " + user.getFirstName() + ",</h2>"
+                + "<p>Your password has been updated successfully.</p>"
+                + "<p>If this wasn't you, please contact support immediately.</p>"
+                + "<br><p>Regards,</p><p><strong>GreetingsApp Team</strong></p>";
+
+        emailService.sendEmail(user.getEmail(), subject, content);
+        return "Password has been updated successfully!";
     }
 }

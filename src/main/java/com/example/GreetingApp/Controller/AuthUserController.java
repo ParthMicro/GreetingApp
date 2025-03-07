@@ -36,4 +36,30 @@ public class AuthUserController {
 
         return ResponseEntity.ok(Map.of("message", "Login successful!", "token", token));
     }
+
+    // Forgot Password
+    @PutMapping("/forgotPassword/{email}")
+    public ResponseEntity<?> forgotPassword(@PathVariable String email, @RequestBody Map<String, String> request) {
+        String newPassword = request.get("password");
+        String response = authenticationService.forgotPassword(email, newPassword);
+        if (response.contains("Sorry")) {
+            return ResponseEntity.status(404).body(Map.of("error", response));
+        }
+        return ResponseEntity.ok(Map.of("message", response));
+    }
+
+    // Reset Password (Authenticated Users)
+    @PutMapping("/resetPassword")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String currentPassword = request.get("currentPassword");
+        String newPassword = request.get("newPassword");
+
+        String response = authenticationService.resetPassword(email, currentPassword, newPassword);
+
+        if (response.contains("Sorry") || response.contains("Incorrect")) {
+            return ResponseEntity.status(401).body(Map.of("error", response));
+        }
+        return ResponseEntity.ok(Map.of("message", response));
+    }
 }

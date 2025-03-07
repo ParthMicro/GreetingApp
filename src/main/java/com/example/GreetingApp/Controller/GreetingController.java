@@ -13,15 +13,12 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/greeting")
 public class GreetingController {
+    @Autowired
+    GreetingService greetingService;
+
     @GetMapping
     public String getGreeting() {
         return "Hello, this is a GET request!";
-    }
-
-    private final GreetingService greetingService;
-    @Autowired
-    public GreetingController(GreetingService greetingService) {
-        this.greetingService = greetingService;
     }
 
     @GetMapping("/service")
